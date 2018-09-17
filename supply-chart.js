@@ -13,11 +13,64 @@ function getReward(blockHeight) {
  }
 }
 
+function getAverageBlockTime(blocks) {
+	var numBlocks = blocks.length;
+	var windowSize = 100;
+	var sum = 0;
+	for(i = numBlocks - windowSize; i < numBlocks; i++) {
+		sum += blocks[i].block_time - blocks[i-1].block_time;
+	}
+	return sum / windowSize;
+}
+
+function buildChartData(blockData) {
+	var chartData = [];
+    var supply = 0;
+	// Historical Data
+	for(var i = 0; i < blockData.length; i++) {
+		var b = blockData[i];
+		var reward = getReward(b.id - 1);
+		supply += reward;
+		if(b.id == 1) { // Reward for 1st block set to 0 for scale
+			reward = 0;
+		}
+      	if(i % 10 == 0) {
+			chartData.push({
+				date: new Date(b.block_time * 1000),
+				CirculatingSupply: supply,
+				RewardLBC: reward,
+				BlockId: b.id
+			});
+        }
+	}
+	// Future blocks
+	var averageBlockTime = getAverageBlockTime(blockData);
+	var reward = 500;
+	var skip = 1000;
+	var blockId = (Math.floor((blockData[blockData.length - 1].id + 1) / skip) * skip);
+	var lastBlockTime = blockData[blockData.length - 1].block_time;
+	while(reward > 0) {
+		reward = getReward(blockId - 1);
+		supply += reward;
+		lastBlockTime += averageBlockTime;
+		if(blockId % skip == 0) {
+			chartData.push({
+				date: new Date(lastBlockTime * 1000),
+				CirculatingSupply: supply,
+				RewardLBC: reward,
+				BlockId: blockId
+			});
+		}
+		blockId += 1;
+	}
+	return chartData;
+}
+
 function loadChartData() {
 	var api_url = "https://chainquery.lbry.io/api/sql?query=";
-	var query = "SELECT id, created_at FROM block";
+	var query = "SELECT id, block_time FROM block";
 	var url = api_url + query;
-  var loadProgress = $('.block-size-chart-container .load-progress');
+  var loadProgress = $('.mining-inflation-chart-container .load-progress');
   $.ajax({
     url: url,
     type: 'get',
@@ -28,21 +81,7 @@ function loadChartData() {
     },
 		success: function(response) {
 		if(response.success) {
-      chartData = [];
-  		var blocks = response.data;
-    	var supply = 0;
-			for(var i = 0; i < blocks.length; i++) {
-      	if(i % 100 == 0) {
-      	var b = blocks[i];
-      	var reward = getReward(parseInt(b.id) - 1);
-    		supply += reward;
-        chartData.push({
-        	date: Date.parse(b.created_at),
-          CirculatingSupply: supply,
-          RewardLBC: reward
-        });
-        }
-			}
+		chartData = buildChartData(response.data);
       if(chart) {
       	chart.dataProvider = chartData;
         chart.validateNow();
@@ -77,14 +116,16 @@ valueAxes: [
 	id: 'v-supply',
 	axisColor: '#1e88e5',
 	axisThickness: 2,
+	position: 'left',
   labelFunction: function(value) {
-     return (Math.round((value / 1000000) * 1000000)/1000000).toFixed(2) + 'M';
+     return (Math.round((value / 1000000) * 1000000)/1000000).toFixed(2);
                     }
 },
 {
 	id: 'v-reward',
 	axisColor: '#00e676',
-	axisThickness: 2
+	axisThickness: 2,
+	position: 'right',
 }
 ],
 categoryAxis: {
@@ -119,7 +160,7 @@ graphs: [
 {
 	id: 'g-reward',
 	valueAxis: 'v-reward',
-	title: 'Reward (LBC)',
+	title: 'Block Reward (LBC)',
 	valueField: 'RewardLBC',
 	bullet: 'round',
 	bulletBorderThickness: 1,
@@ -147,13 +188,13 @@ gridColor: '#bbbbbb'
 legend: {
 marginLeft: 110,
 useGraphSettings: true,
-valueAlign: 'right',
-valueWidth: 60,
+valueText: "",
 spacing: 64,
+
 },
 export: {
 enabled: true,
-fileName: 'lbry-mining-inflation-chart',
+fileName: 'lbry-supply-chart',
 position: 'bottom-right',
 divId: 'chart-export'
 }
