@@ -140,7 +140,7 @@ graphs: [
 {
 	id: 'g-supply',
 	valueAxis: 'v-supply', // we have to indicate which value axis should be used
-	title: 'Circulating supply (millions LBC)',
+	title: 'Available supply (millions LBC)',
 	valueField: 'CirculatingSupply',
 	bullet: 'round',
 	bulletBorderThickness: 1,
