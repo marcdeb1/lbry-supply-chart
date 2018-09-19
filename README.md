@@ -1,5 +1,5 @@
 # LBRY Supply Chart
-An embeddable chart to see the supply curve of LBRY Credits and mining rewards on the LBRY blokchain. For more information on the LBRY project, visit https://lbry.tech/.
+An embeddable chart to see the supply curve of LBRY Credits and mining rewards on the LBRY blokchain. It is using chainquery (https://github.com/lbryio/chainquery) to get data from the LBRY blockchain. For more information on the LBRY project, visit https://lbry.tech/.
 
 ## How to use
 
