@@ -107,10 +107,18 @@ chart = AmCharts.makeChart('mining-inflation-chart', {
 type: 'serial',
 theme: 'light',
 mouseWheelZoomEnabled: true,
-height: '100%',
 categoryField: 'date',
 synchronizeGrid: true,
 dataProvider: chartData,
+titles: [
+{
+	text: "LBRY Supply Chart",
+	size: 15,
+}
+],
+responsive: {
+	enabled: true,
+},
 valueAxes: [
 {
 	id: 'v-supply',
