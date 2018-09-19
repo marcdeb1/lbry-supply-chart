@@ -9,8 +9,29 @@ function getReward(blockHeight) {
    return 1 + Math.floor((blockHeight - 5001) / 100);
  }
  else {
-   return Math.max(0, 500 - Math.floor(((Math.sqrt((blockHeight - 55001) / 4 + 1)) - 1) / 2));
+	var level = (blockHeight - 55001) / 32;
+	var reduction = Math.floor((Math.floor(Math.sqrt((8 * level) + 1)) - 1) / 2);
+	while(!(withinLevelBounds(reduction, level))) {
+        if(((reduction * reduction + reduction) / 2) > level) {
+            reduction--;
+        }
+        else {
+            reduction++;
+        }
+	}
+	return Math.max(0, 500 - reduction);
  }
+}
+
+function withinLevelBounds(reduction, level) {
+    if(((reduction * reduction + reduction) / 2) > level) {
+        return false;
+	}
+    reduction += 1;
+    if(((reduction * reduction + reduction) / 2) <= level) {
+        return false;
+	}
+    return true;
 }
 
 function getAverageBlockTime(blocks) {
@@ -107,17 +128,18 @@ chart = AmCharts.makeChart('mining-inflation-chart', {
 type: 'serial',
 theme: 'light',
 mouseWheelZoomEnabled: true,
+height: '100%',
 categoryField: 'date',
 synchronizeGrid: true,
 dataProvider: chartData,
 titles: [
 {
-	text: "LBRY Supply Chart",
-	size: 15,
+       text: "LBRY Supply Chart",
+       size: 15,
 }
 ],
 responsive: {
-	enabled: true,
+       enabled: true,
 },
 valueAxes: [
 {
