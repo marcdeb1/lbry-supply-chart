@@ -3,8 +3,8 @@ An embeddable chart to see the supply curve of LBRY Credits and mining rewards o
 
 ## How to use
 
-- Include jQuery and amcharts (https://www.amcharts.com/) Javascript files, as in supply-chart.html.
-- Copy supply-chart.js and supply-chart.css to your page.
+- Include jQuery and amcharts (https://www.amcharts.com/) Javascript files (see supply-chart.html).
+- Include supply-chart.js and supply-chart.css to your page.
 - Add to code where you want to see the chart appear :
 ```
 <div class="mining-inflation-chart-container">
