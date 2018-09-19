@@ -9,10 +9,10 @@ function getReward(blockHeight) {
    return 1 + Math.floor((blockHeight - 5001) / 100);
  }
  else {
-	var level = (blockHeight - 55001) / 32;
+	var level = Math.floor((blockHeight - 55001) / 32);
 	var reduction = Math.floor((Math.floor(Math.sqrt((8 * level) + 1)) - 1) / 2);
 	while(!(withinLevelBounds(reduction, level))) {
-        if(((reduction * reduction + reduction) / 2) > level) {
+		if(Math.floor((reduction * reduction + reduction) / 2) > level) {
             reduction--;
         }
         else {
@@ -24,11 +24,11 @@ function getReward(blockHeight) {
 }
 
 function withinLevelBounds(reduction, level) {
-    if(((reduction * reduction + reduction) / 2) > level) {
+    if(Math.floor((reduction * reduction + reduction) / 2) > level) {
         return false;
 	}
     reduction += 1;
-    if(((reduction * reduction + reduction) / 2) <= level) {
+    if(Math.floor((reduction * reduction + reduction) / 2) <= level) {
         return false;
 	}
     return true;
@@ -47,42 +47,35 @@ function getAverageBlockTime(blocks) {
 function buildChartData(blockData) {
 	var chartData = [];
     var supply = 0;
-	// Historical Data
-	for(var i = 0; i < blockData.length; i++) {
-		var b = blockData[i];
-		var reward = getReward(b.id - 1);
+	var reward = 0;
+	var averageBlockTime = getAverageBlockTime(blockData);
+	var blockTime = 0;
+	var lastBlock = 4071017; // Last block with reward
+	var skip = 100;
+	for(var i = 0; i < lastBlock; i++) {
+		reward = getReward(i);
 		supply += reward;
-		if(b.id == 1) { // Reward for 1st block set to 0 for scale
+		if(i == 0) { // Reward for 1st block set to 0 for scale
 			reward = 0;
 		}
-      	if(i % 10 == 0) {
+		if(i < blockData.length) {
+			// Historical Data
+			var b = blockData[i];
+			blockTime = b.block_time;
+		}
+		else {
+			// Future blocks
+			skip = 1000;
+			blockTime += averageBlockTime;
+		}
+		if(i % skip == 0) { // Only push 1/<skip> of all blocks to optimize data loading
 			chartData.push({
-				date: new Date(b.block_time * 1000),
+				date: new Date(blockTime * 1000),
 				CirculatingSupply: supply,
 				RewardLBC: reward,
-				BlockId: b.id
-			});
-        }
-	}
-	// Future blocks
-	var averageBlockTime = getAverageBlockTime(blockData);
-	var reward = 500;
-	var skip = 1000;
-	var blockId = (Math.floor((blockData[blockData.length - 1].id + 1) / skip) * skip);
-	var lastBlockTime = blockData[blockData.length - 1].block_time;
-	while(reward > 0) {
-		reward = getReward(blockId - 1);
-		supply += reward;
-		lastBlockTime += averageBlockTime;
-		if(blockId % skip == 0) {
-			chartData.push({
-				date: new Date(lastBlockTime * 1000),
-				CirculatingSupply: supply,
-				RewardLBC: reward,
-				BlockId: blockId
+				BlockId: i + 1
 			});
 		}
-		blockId += 1;
 	}
 	return chartData;
 }
