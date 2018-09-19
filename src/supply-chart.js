@@ -181,8 +181,7 @@ graphs: [
 	lineColor: '#1e88e5',
 	hideBulletsCount: 101,
 	balloonText: '[[CirculatingSupply]]',
-	switchable: false,
-  balloonFunction: function(item, graph) {
+	balloonFunction: function(item, graph) {
        var result = graph.balloonText;
        return result.replace('[[CirculatingSupply]]', (Math.round((item.dataContext.CirculatingSupply / 1000000) * 1000000)/1000000).toFixed(2));
                     }
@@ -199,7 +198,7 @@ graphs: [
 	bulletSize: 5,
 	useLineColorForBulletBorder: true,
 	lineColor: '#00e676',
-	balloonText: '[[RewardLBC]] LBC',
+	balloonText: '[[RewardLBC]] LBC<br>Block [[BlockId]]',
 	hideBulletsCount: 101
 }
 ],
