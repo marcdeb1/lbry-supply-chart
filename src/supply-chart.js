@@ -52,9 +52,15 @@ function buildChartData(blockData) {
 	var blockTime = 0;
 	var lastBlock = 4071017; // Last block with reward
 	var skip = 100;
+	var blocksPerYear = Math.floor((3600*24*365) / averageBlockTime);
+	var historicalSupply = {};
+	var lastYearSupply = 0;
+	var lastYearBlock = 0;
+	var inflationRate = 0;
 	for(var i = 0; i < lastBlock; i++) {
 		reward = getReward(i);
 		supply += reward;
+		historicalSupply[i + 1] = supply;
 		if(i == 0) { // Reward for 1st block set to 0 for scale
 			reward = 0;
 		}
@@ -68,11 +74,22 @@ function buildChartData(blockData) {
 			skip = 1000;
 			blockTime += averageBlockTime;
 		}
+		// Inflation Rate
+		if(i + 1 - blocksPerYear <= 0) {
+			lastYearBlock = 1;
+		}
+		else {
+			lastYearBlock = i + 1 - blocksPerYear;
+		}
+		lastYearSupply = historicalSupply[lastYearBlock];
+		inflationRate = ((supply - lastYearSupply) / lastYearSupply) * 100;
 		if(i % skip == 0) { // Only push 1/<skip> of all blocks to optimize data loading
 			chartData.push({
 				date: new Date(blockTime * 1000),
-				CirculatingSupply: supply,
+				date: new Date(blockTime * 1000),
+				AvailableSupply: supply,
 				RewardLBC: reward,
+				InflationRate: inflationRate,
 				BlockId: i + 1
 			});
 		}
@@ -140,16 +157,26 @@ valueAxes: [
 	axisColor: '#1e88e5',
 	axisThickness: 2,
 	position: 'left',
-  labelFunction: function(value) {
-     return (Math.round((value / 1000000) * 1000000)/1000000).toFixed(2);
-                    }
+	labelFunction: function(value) {
+		return (Math.round((value / 1000000) * 1000000)/1000000).toFixed(2);
+    }
 },
 {
 	id: 'v-reward',
-	axisColor: '#00e676',
+	axisColor: '#0b7a06',
+	axisThickness: 2,
+	position: 'left',
+	offset: 75,
+},
+{
+	id: 'v-inflation-rate',
+	axisColor: '#ff9900',
 	axisThickness: 2,
 	position: 'right',
-}
+	labelFunction: function(value) {
+		return value.toFixed(2);
+    }
+},
 ],
 categoryAxis: {
 parseDates: true,
@@ -164,7 +191,7 @@ graphs: [
 	id: 'g-supply',
 	valueAxis: 'v-supply', // we have to indicate which value axis should be used
 	title: 'Available supply (millions LBC)',
-	valueField: 'CirculatingSupply',
+	valueField: 'AvailableSupply',
 	bullet: 'round',
 	bulletBorderThickness: 1,
 	bulletBorderAlpha: 1,
@@ -173,10 +200,10 @@ graphs: [
 	useLineColorForBulletBorder: true,
 	lineColor: '#1e88e5',
 	hideBulletsCount: 101,
-	balloonText: '[[CirculatingSupply]]',
+	balloonText: '[[AvailableSupply]]',
 	balloonFunction: function(item, graph) {
        var result = graph.balloonText;
-       return result.replace('[[CirculatingSupply]]', (Math.round((item.dataContext.CirculatingSupply / 1000000) * 1000000)/1000000).toFixed(2));
+       return result.replace('[[AvailableSupply]]', (Math.round((item.dataContext.AvailableSupply / 1000000) * 1000000)/1000000).toFixed(2));
                     }
 },
 {
@@ -190,9 +217,28 @@ graphs: [
 	bulletColor: '#ffffff',
 	bulletSize: 5,
 	useLineColorForBulletBorder: true,
-	lineColor: '#00e676',
+	lineColor: '#0b7a06',
 	balloonText: '[[RewardLBC]] LBC<br>Block [[BlockId]]',
 	hideBulletsCount: 101
+},
+{
+	id: 'g-inflation-rate',
+	valueAxis: 'v-inflation-rate',
+	title: 'Annualized Inflation Rate',
+	valueField: 'InflationRate',
+	bullet: 'round',
+	bulletBorderThickness: 1,
+	bulletBorderAlpha: 1,
+	bulletColor: '#ffffff',
+	bulletSize: 5,
+	useLineColorForBulletBorder: true,
+	lineColor: '#ff9900',
+	balloonText: '[[InflationRate]]%',
+	hideBulletsCount: 101,
+	balloonFunction: function(item, graph) {
+		var result = graph.balloonText;
+		return result.replace('[[InflationRate]]', item.dataContext.InflationRate.toFixed(2));
+    }
 }
 ],
 chartCursor: {
